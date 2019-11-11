@@ -4,12 +4,8 @@
 
 <script>
 export default {
-    props: ['clientId', 'currency', 'orderId', 'amount'],
+    props: ['clientId', 'currency', 'orderId', 'amount', 'options'],
     methods: {
-        async onApprove(data, actions) {
-            const response = await actions.order.capture()
-            this.$emit('payment-completed', response)
-        },
         createOrder(data, actions) {
             return actions.order.create({
                 purchase_units: [{
@@ -28,14 +24,28 @@ export default {
             const paypalScript = document.createElement('script')
             paypalScript.setAttribute(
                 'src',
-                `https://www.paypal.com/sdk/js?client-id=${this.clientId}`
-                    + `&currency=${this.currency}`
-                    + `&disable-funding=card`
+                this.getSdk()
             )
             paypalScript.async = true
             paypalScript.defer = true
             paypalScript.onload = loaded
             document.head.appendChild(paypalScript)
+        },
+        getSdk() {
+            var url = `https://www.paypal.com/sdk/js?client-id=${this.clientId}`
+                    + `&currency=${this.currency}`
+            if (this.options) {
+                if (this.options.disableFunding) {
+                    url += `&disable-funding=${this.options.disableFunding}`
+                }
+                if (this.options.disableCard) {
+                    url += `&disable-card=${this.options.disableCard}`
+                }
+                if (this.options.debug) {
+                    url += `&debug=${this.options.debug}`
+                }
+            }
+            return url
         },
         generateButton() {
             const paypal = window.paypal
